@@ -32,7 +32,7 @@ class WolfProtocol(DatagramProtocol):
             data = data.lstrip(self.packet_prefix)
             command, content = find_command(data)
 
-            #the factory does something
+            #get a response from package handler
             response = self.message(command, content, host, port)
             if response:
                 self.sendMessage(response, (host, port))
