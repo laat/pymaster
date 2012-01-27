@@ -7,9 +7,6 @@ from protocol.wolfmp import WolfProtocol
 from protocol.utils.wolfutil import infostring_to_dict
 
 class WolfClientProtocol(WolfProtocol):
-    def handle_infoResponse(self, content, *args):
-        print content
-
     def handle_statusResponse(self, content, *args):
         print infostring_to_dict(content)
 

@@ -54,3 +54,6 @@ class WolfProtocol(DatagramProtocol):
 
     def getinfo(self, address, challenge = ""):
         self.sendMessage(" ".join(["getinfo", challenge]), address)
+
+    def handle_infoResponse(self, content, *args):
+        print infostring_to_dict(content)
