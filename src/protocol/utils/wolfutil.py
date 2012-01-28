@@ -5,6 +5,7 @@ Description: Protocol utils
 '''
 
 from random import randint
+from itertools import izip
 
 def build_challenge():
     """
@@ -31,23 +32,27 @@ def find_command(text):
         if ord(c) <= ord(" "): # if it is not a normal character
            index = i
            break
-    return text[:i], text[i:]
+    command = text[:i]
+    content = text[i:].lstrip("\n").lstrip("\\")
+    return command, content
 
-def infostring_to_dict(infostring):
-    """ search an infostring for a key """
-    def _player_list(playerlist):
+def server_response_to_dict(response, statusResponse=False):
+    """ works with infoResponse and statusResponse """
+    def infostring_to_dict(line):
+        """takes a single line of infostring and creates a dict"""
+        info = line.split("\\")
+        i = iter(info)
+        infodict = dict(izip(i, i))
+        return infodict
+
+    def extract_player_list(lines):
         players = []
-        for p in playerlist:
+        for p in lines:
             players.append(p.split(" ", 3)[-1])
         return players
 
-    infostring = infostring.split("\n")
-    infolist  = infostring[1].split("\\")
-    playerlist = infostring[2:]
-
-    infodict = {}
-    for i in range(1, len(infolist), 2):
-        infodict[infolist[i]] = infolist[i+1]
-
-    infodict["players"] = _player_list(playerlist)
+    lines = response.split("\n")
+    infodict = infostring_to_dict(lines[0])
+    if statusResponse:
+        infodict["players"] = extract_player_list(lines[1:])
     return infodict

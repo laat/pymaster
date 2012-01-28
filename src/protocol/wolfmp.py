@@ -6,7 +6,6 @@ Description: UDP protocol for RTCW
 
 from utils.wolfutil import find_command
 from utils.wolfutil import build_challenge
-from utils.wolfutil import infostring_to_dict
 from twisted.internet.protocol import ClientFactory, ServerFactory, DatagramProtocol
 from twisted.internet import reactor
 
@@ -15,7 +14,7 @@ class WolfProtocol(DatagramProtocol):
         self.packet_prefix = '\xff' * 4
 
     def startListening(self):
-        self
+        pass
 
     def stopProtocol(self):
         pass
@@ -52,8 +51,3 @@ class WolfProtocol(DatagramProtocol):
         except:
             return None
 
-    def getinfo(self, address, challenge = ""):
-        self.sendMessage(" ".join(["getinfo", challenge]), address)
-
-    def handle_infoResponse(self, content, *args):
-        print infostring_to_dict(content)
