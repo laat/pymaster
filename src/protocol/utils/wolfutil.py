@@ -29,7 +29,7 @@ def find_command(text):
     """ returns command and arguments, splits on the first non-normal character"""
     index = 0
     for i, c in enumerate(text):
-        if ord(c) <= ord(" "): # if it is not a normal character
+        if ord(c) <= ord(" ") or ord(c) == ord("\\"): # if it is not a normal character
            index = i
            break
     command = text[:i]
