@@ -5,6 +5,7 @@ Description: internal serverlist
 '''
 from protocol.utils.wolfutil import build_challenge
 from protocol.utils.wolfutil import server_response_to_dict
+from protocol.utils.wolfutil import pack_host, unpack_host
 from protocol.wolfmp import WolfProtocol
 from twisted.internet.task import LoopingCall
 from collections import defaultdict
@@ -32,10 +33,9 @@ class ProtocolIndex(object):
 
     def add_server(self, protocol, host, port):
         self.protocol_index[protocol].add((host, port))
-        print self.protocol_index
 
     def remove_server(self, host, port):
-        for protocol, servers in self.protocol_index:
+        for protocol, servers in self.protocol_index.iteritems():
             if (host, port) in servers:
                 servers.remove((host, port))
 
@@ -49,10 +49,9 @@ class Servers(object):
         self.protocol_index = ProtocolIndex()
 
     def _timeout(self, host, port):
-        if time.time() - self.servers[host][port]["timestamp"] > 4:
+        if time.time() - self.servers[host][port]["timestamp"] > 400:
             self.remove_server(host, port)
             self.protocol_index.remove_server(host, port)
-            print time.time() - self.servers[host][port]["timestamp"]
             print "timeout %s:%s"%(host, port)
 
     def _new_server(self, host, port):
@@ -95,7 +94,7 @@ class Servers(object):
             if "protocol" in infodict:
                 self.protocol_index.add_server(infodict["protocol"], host, port)
 
-        print self.servers # Debug
+        print "updated server: %s:%s"%(host, port)
         return new
 
     def remove_server(self, host, port):
@@ -132,7 +131,6 @@ class WolfMasterServerProtocol(WolfProtocol):
         self.packet_prefix = '\xff' * 4 # todo should inherit
 
     def _update(self, infodict, host, port):
-        print "update"
         if infodict is None:
             infodict = {}
 
@@ -140,7 +138,7 @@ class WolfMasterServerProtocol(WolfProtocol):
         if new_server:
             getinfo_task = LoopingCall(self.getstatus, (host, port), challenge=new_server)
             self.servers.add_task(host, port, getinfo_task)
-            getinfo_task.start(30)  # 5 minute intervall between getinfo
+            getinfo_task.start(300)  # 5 minute intervall between getinfo
 
         return new_server
 
@@ -179,40 +177,61 @@ class WolfMasterServerProtocol(WolfProtocol):
         infodict = server_response_to_dict(content, statusResponse=True)
         self._update(infodict, host, port)
 
-    def handle_getserveres(self, content, host, port):
+    def handle_getservers(self, content, host, port):
+        """
+        Sends sgetserverResponse messages to clients containing all servers
+        TODO: respect filtering options
+        """
+
+        def split_it(servers, length):
+            l = len(servers)
+            i = 0
+            while i+length<l:
+                yield servers[i:i+length]
+                i = i + length
+            yield servers[i:]
+
         print "getserver" + content
-        # return a serverlist that is able to be sendt
-        pass
+        end = "\\EOT\0\0\0"
+        delim = "\\"
+        max_servers_in_package = 30  # 18*8+(7*8*30)+4*8 = 1856
+
+        content = content.split(" ")
+        # one of the first two is the protocol
+        if content[0].isdigit():
+            protocol = content[0]
+        elif content[1].isdigit():
+            protocol = content[1]
+        else:
+            return  # malformed package
+
+        servers = self.servers.get_servers(protocol)
+        #construct packets
+        for srvs in split_it(servers, max_servers_in_package):
+            packed_srvs = [pack_host(s[0], s[1]) for s in srvs]
+            self.sendMessage("getserversResponse\\"+delim.join(packed_srvs)+end,
+                    (host, port))
+
 
     def getservers(self, address, argumentlist):
+        print "Sending getservers with arguments %s to %s" % (argumentlist, address)
         self.sendMessage("getservers "+ " ".join(argumentlist), address)
 
     def handle_getserversResponse(self, content, *args):
-        def get_pair(string):
-            data = unpack(">BBBBH", string)
-            host = "%d.%d.%d.%d"% data[:-1]
-            port = data[-1]
-            return host, port
-
         print "getserversResponse:"+content
         content = content.strip("\\EOT\0\0\0")
         servers = content.split("\\")
-        print servers
-        try:
-            for s in servers:
-                print s
-                print get_pair(s)
-                t = get_pair(s)
-                self._update(None, t[0], t[1])
-        except:
-            import sys
-            print sys.exc_info()
+
+        for s in servers:
+            t = unpack_host(s)
+            self._update(None, t[0], t[1])
 
 if __name__ == '__main__':
     from twisted.internet import reactor
     server = reactor.listenUDP(27950, WolfMasterServerProtocol())
-    server.protocol._update(None,  "129.241.106.172", 27960)  # cky-beach
-    server.protocol.getservers(('64.22.107.125', 27950), ["57","empty", "full"]) # wolfmaster.s4ndmod.com
+    #server.protocol._update(None,  "129.241.106.172", 27960)  # cky-beach
+    #server.protocol.getservers(('129.241.105.225', 27950), ["57","empty", "full"]) # absint master
+    #server.protocol.getservers(('64.22.107.125', 27950), ["57","empty", "full"]) # wolfmaster.s4ndmod.com
     #server.protocol.getinfo(('213.239.214.164', 27961))  # HASDM
     #server.protocol.getinfo(('129.241.106.172', 27960))  # cky-beach info
     reactor.run()

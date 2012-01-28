@@ -39,6 +39,7 @@ class WolfProtocol(DatagramProtocol):
         else:
             print "a package with the wrong prefix received"
 
+
     def message(self, command, *args):
         handler = getattr(self, 'handle_%s' % (command, ), None)
 
@@ -50,4 +51,3 @@ class WolfProtocol(DatagramProtocol):
             return handler(*args)
         except:
             return None
-

@@ -9,6 +9,7 @@ from struct import unpack
 import sys
 
 class WolfClientProtocol(WolfProtocol):
+
     def getinfo(self, address, challenge = ""):
         print "Sending getinfo %s to %s" % (challenge, address)
         self.sendMessage(" ".join(["getinfo", challenge]), address)
@@ -34,13 +35,9 @@ class WolfClientProtocol(WolfProtocol):
 
         print "getserversResponse:"+content
         content = content.strip("\\EOT\0\0\0")
-        try:
-            servers = content.split("\\")
-            for server in servers:
-                print get_pair(server)
-        except:
-            print sys.exc_info()
-
+        servers = content.split("\\")
+        for server in servers:
+            print get_pair(server)
 
 
 if __name__ == '__main__':
@@ -50,7 +47,8 @@ if __name__ == '__main__':
     #server.protocol.getinfo(('129.241.106.172', 27960))  # cky-beach info
     #server.protocol.getstatus(('213.239.214.164', 27961)) # HASDM
     #server.protocol.getstatus(('93.186.192.128', 23352)) # CU'DM
-    server.protocol.getservers(('129.241.105.225', 27950)) # absint master
-    server.protocol.getservers(('64.22.107.125', 27950)) # wolfmaster.s4ndmod.com
+    #server.protocol.getservers(('129.241.105.225', 27950)) # absint master
+    #server.protocol.getservers(('64.22.107.125', 27950)) # wolfmaster.s4ndmod.com
+    server.protocol.getservers(("127.0.0.1", 27950))
 
     reactor.run()

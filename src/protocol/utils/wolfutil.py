@@ -6,6 +6,8 @@ Description: Protocol utils
 
 from random import randint
 from itertools import izip
+from struct import unpack
+from struct import pack
 
 def build_challenge():
     """
@@ -56,3 +58,17 @@ def server_response_to_dict(response, statusResponse=False):
     if statusResponse:
         infodict["players"] = extract_player_list(lines[1:])
     return infodict
+
+def pack_host(host, port):
+    """
+    Packs a host tuple according to the standard. AFAIK - Sigurd
+    """
+    values = map(int, host.split(".")) # the ip first
+    values.append(port)
+    return pack(">BBBBH", *values)
+
+def unpack_host(string):
+    data = unpack(">BBBBH", string)
+    host = "%d.%d.%d.%d"% data[:-1]
+    port = int(data[-1])
+    return host, port
