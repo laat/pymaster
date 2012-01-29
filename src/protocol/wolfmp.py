@@ -5,24 +5,23 @@ Description: UDP protocol for RTCW
 '''
 
 from utils.wolfutil import find_command
-from utils.wolfutil import build_challenge
-from twisted.internet.protocol import ClientFactory, ServerFactory, DatagramProtocol
+from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
 
 class WolfProtocol(DatagramProtocol):
+    """
+    A simple implementation of the rtcw UDP-protocol.
+
+    To handle commands sendt to this server, one must add methods with
+    the prefix handle_ with the ending of the command
+    """
     def __init__(self):
         self.packet_prefix = '\xff' * 4
 
-    def startListening(self):
-        pass
-
-    def stopProtocol(self):
-        pass
-
-    def startProtocol(self):
-        pass
-
     def sendMessage(self, message, address):
+        """
+        Sends a message witht the correct prefix
+        """
         self.transport.write('%s%s\n'%(self.packet_prefix, message), address)
 
     def datagramReceived(self, data, (host, port)):
@@ -39,14 +38,15 @@ class WolfProtocol(DatagramProtocol):
         else:
             print "a package with the wrong prefix received"
 
-
     def message(self, command, *args):
+        """
+        Routes incoming packages to the correct handler
+        """
         handler = getattr(self, 'handle_%s' % (command, ), None)
 
         if not handler:
             print "a handler for %s was not found" % (command, )
             return None
-
         try:
             return handler(*args)
         except:

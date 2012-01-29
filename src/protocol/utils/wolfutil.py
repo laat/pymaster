@@ -1,5 +1,5 @@
 '''
-File: q3util.py
+File: wolfutil.py
 Author: Sigurd Fosseng
 Description: Protocol utils
 '''
@@ -14,7 +14,6 @@ def build_challenge():
     Build a challenge string for a "getinfo" message
     it is used to prevent spoofing of serveraddresses
     """
-
     def _rand_char():
         """ a random legal character """
         illegal = ["\\", ";", '"', "%", "/"]
@@ -28,7 +27,10 @@ def build_challenge():
     return ''.join(challenge)
 
 def find_command(text):
-    """ returns command and arguments, splits on the first non-normal character"""
+    """
+    Returns command and arguments, splits on the first non-normal
+    character
+    """
     index = 0
     for i, c in enumerate(text):
         if ord(c) <= ord(" ") or ord(c) == ord("\\"): # if it is not a normal character
@@ -39,7 +41,9 @@ def find_command(text):
     return command, content
 
 def server_response_to_dict(response, statusResponse=False):
-    """ works with infoResponse and statusResponse """
+    """
+    Works with infoResponse and statusResponse
+    """
     def infostring_to_dict(line):
         """takes a single line of infostring and creates a dict"""
         info = line.split("\\")
