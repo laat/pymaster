@@ -1,19 +1,22 @@
 '''
-File: servers.py
+File: master_server.py
 Author: Sigurd Fosseng
 Description: Master Server implementation
+
+This implementation aims to cover all games that uses the quake 3
+protocol
 '''
 from protocol.utils.wolfutil import server_response_to_dict
 from protocol.utils.wolfutil import pack_host, unpack_host
 from twisted.internet.task import LoopingCall
-from protocol.wolfmp import WolfProtocol
+from protocol.q3 import Q3Protocol
 from server_list import Servers
 import time
 
 
 flatlines = ["WolfFlatline-1", "ETFlatline-1"]
 
-class WolfMasterServerProtocol(WolfProtocol):
+class Q3MasterServerProtocol(Q3Protocol):
     def __init__(self):
         self.servers = Servers()
         self.packet_prefix = '\xff' * 4 # todo should inherit
@@ -116,7 +119,7 @@ class WolfMasterServerProtocol(WolfProtocol):
 
 if __name__ == '__main__':
     from twisted.internet import reactor
-    server = reactor.listenUDP(27950, WolfMasterServerProtocol())
+    server = reactor.listenUDP(27950, Q3MasterServerProtocol())
     #server.protocol._update(None,  "129.241.106.172", 27960)  # cky-beach
     #server.protocol.getservers(('129.241.105.225', 27950), ["57","empty", "full"]) # absint master
     server.protocol.getservers(('64.22.107.125', 27950), ["57","empty", "full"]) # wolfmaster.s4ndmod.com

@@ -1,14 +1,14 @@
 '''
 File: wolfmp.py
 Author: Sigurd Fosseng
-Description: UDP protocol for RTCW
+Description: UDP protocol for Quake3
 '''
 
-from utils.wolfutil import find_command
+from utils.q3util import find_command
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
 
-class WolfProtocol(DatagramProtocol):
+class Q3Protocol(DatagramProtocol):
     """
     A simple implementation of the rtcw UDP-protocol.
 
