@@ -27,7 +27,7 @@ class Q3MasterServerProtocol(Q3Protocol):
 
         new_server = self.servers.update(infodict, host, port)  # the challenge if new
         if new_server:
-            getinfo_task = LoopingCall(self.getstatus, (host, port), challenge=new_server)
+            getinfo_task = LoopingCall(self.getinfo, (host, port), challenge=new_server)
             self.servers.add_task(host, port, getinfo_task)
             getinfo_task.start(300)  # 5 minute intervall between getinfo
 
@@ -45,6 +45,8 @@ class Q3MasterServerProtocol(Q3Protocol):
         if content in flatlines:
             return  # ignore
         self._update(None, host, port)
+        # reply with getinfo
+        self.getinfo(self, (host, port), challenge=self.servers.get(host, port)["challenge"])
 
     def handle_gameCompleteStatus(self, content, host, port):
         print "gameCompleteStatus" + content
@@ -57,15 +59,6 @@ class Q3MasterServerProtocol(Q3Protocol):
     def handle_infoResponse(self, content, host, port):
         print "infoResponse from %s:%s"%(host, port)
         infodict = server_response_to_dict(content)
-        self._update(infodict, host, port)
-
-    def getstatus(self, address, challenge = ""):
-        print "Sending getinfo %s to %s" % (challenge, address)
-        self.sendMessage(" ".join(["getstatus", challenge]), address)
-
-    def handle_statusResponse(self, content, host, port):
-        print "statusResponse from %s:%s"%(host, port)
-        infodict = server_response_to_dict(content, statusResponse=True)
         self._update(infodict, host, port)
 
     def handle_getservers(self, content, host, port):
