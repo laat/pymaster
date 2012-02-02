@@ -40,17 +40,14 @@ def find_command(text):
     content = text[i:].lstrip("\n").lstrip("\\")
     return command, content
 
-def server_response_to_dict(response, statusResponse=False):
-    """
-    Works with infoResponse and statusResponse
-    """
-    def infostring_to_dict(line):
-        """takes a single line of infostring and creates a dict"""
-        info = line.split("\\")
-        i = iter(info)
-        infodict = dict(izip(i, i))
-        return infodict
+def infostring_to_dict(response):
+    """takes a single line of infostring and creates a defaultdict"""
+    info = response.split("\\")
+    i = iter(info)
+    infodict = dict(izip(i, i))
+    return infodict
 
+def statusresponse_to_dict(response):
     def extract_player_list(lines):
         players = []
         for p in lines:
