@@ -77,7 +77,10 @@ class Servers(object):
         #  update the server with new infodict
         if infodict:
             if "challenge" in infodict and server["challenge"] == infodict["challenge"]:  # spoofprotect
+                del infodict["challenge"] # this is not needed any more
                 server["infodict"].update(infodict)
+                server["empty"] = infodict["clients"] == "0"
+                server["full"] = infodict["sv_maxclients"] == infodict["clients"]
             else:
                 self.remove_server(host, port)
 
@@ -112,5 +115,26 @@ class Servers(object):
     def get(self, host, port):
         return self.servers[host][port]
 
-    def get_servers(self, protocol):
-        return self.protocol_index.get_servers(protocol)
+    def get_servers(self, protocol, empty=True, full=True, gametype=None):
+        all_servers = self.protocol_index.get_servers(protocol)
+        if empty and full and not gametype:
+            return all_servers
+        else:  #do some filtering
+            srvs = []
+            for host, port in all_servers:
+                s = self.servers[host][port]
+
+                filter_this = False
+                if not full and s["full"]: # Do not want full servers -> filter
+                    filter_this = True
+                if not empty and s["empty"]:
+                    filter_this = True
+                if gametype and gametype != s["infodict"]["gametype"]:
+                    filter_this = True
+
+                if not filter_this:
+                    srvs.append((host, port))
+                else:
+                    pass  #print "filtered %s:%s"%(host, port)
+
+            return srvs

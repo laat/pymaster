@@ -6,8 +6,8 @@ Description: Master Server implementation
 This implementation aims to cover all games that uses the quake 3
 protocol
 '''
-from protocol.utils.wolfutil import server_response_to_dict
-from protocol.utils.wolfutil import pack_host, unpack_host
+from protocol.utils.q3util import infostring_to_dict
+from protocol.utils.q3util import pack_host, unpack_host
 from twisted.internet.task import LoopingCall
 from protocol.q3 import Q3Protocol
 from server_list import Servers
@@ -45,20 +45,19 @@ class Q3MasterServerProtocol(Q3Protocol):
         if content in flatlines:
             return  # ignore
         self._update(None, host, port)
-        # reply with getinfo
         self.getinfo(self, (host, port), challenge=self.servers.get(host, port)["challenge"])
-
-    def handle_gameCompleteStatus(self, content, host, port):
-        print "gameCompleteStatus" + content
-        self._update(None, host, port)
 
     def getinfo(self, address, challenge = ""):
         print "Sending getinfo %s to %s" % (challenge, address)
         self.sendMessage(" ".join(["getinfo", challenge]), address)
 
+    def handle_gameCompleteStatus(self, content, host, port):
+        print "gameCompleteStatus" + content
+        self._update(None, host, port)
+
     def handle_infoResponse(self, content, host, port):
         print "infoResponse from %s:%s"%(host, port)
-        infodict = server_response_to_dict(content)
+        infodict = infostring_to_dict(content)
         self._update(infodict, host, port)
 
     def handle_getservers(self, content, host, port):
@@ -84,18 +83,41 @@ class Q3MasterServerProtocol(Q3Protocol):
         # one of the first two is the protocol
         if content[0].isdigit():
             protocol = content[0]
+            filter_strings = content[1:]
         elif content[1].isdigit():
             protocol = content[1]
+            filter_strings = content[2:]
         else:
             return  # malformed package
 
-        servers = self.servers.get_servers(protocol)
+        empty, full, gametype = False, False, False
+        for f in filter_strings:
+            if f == "empty":
+                empty = True  # include empty
+            elif f == "full":
+                full = True  # inclure full
+
+            #quake 3
+            elif f == "ffa":
+                gametype = "0"
+            elif f == "tourney":
+                gametype = "1"
+            elif f == "team":
+                gametype = "2"
+            elif f == "ctf":
+                gametype = "3"
+
+            #darkplaces
+            elif f.startswith("gametype="):
+                gametype = f.lstrip("gametype=").strip("\n")
+
+
+        servers = self.servers.get_servers(protocol, empty=empty, full=full, gametype=gametype)
         #construct packets
         for srvs in split_it(servers, max_servers_in_package):
             packed_srvs = [pack_host(s[0], s[1]) for s in srvs]
             self.sendMessage("getserversResponse\\"+delim.join(packed_srvs)+end,
                     (host, port))
-
 
     def getservers(self, address, argumentlist):
         print "Sending getservers with arguments %s to %s" % (argumentlist, address)
