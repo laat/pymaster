@@ -47,7 +47,6 @@ class Q3MasterServerProtocol(Q3Protocol):
             return  # ignore
         self._update(None, host, port)
         self.getinfo(self, (host, port), challenge=self.servers.get(host, port)["challenge"])
-
     def getinfo(self, address, challenge = ""):
         log.msg("Sending getinfo %s to %s" % (challenge, address))
         self.sendMessage(" ".join(["getinfo", challenge]), address)

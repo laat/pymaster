@@ -6,8 +6,6 @@ Description: A simple client for getting responses from servers
 from protocol.q3 import Q3Protocol
 from struct import unpack
 
-import sys
-
 class WolfClientProtocol(Q3Protocol):
 
     def getinfo(self, address, challenge = ""):

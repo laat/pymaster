@@ -1,5 +1,4 @@
-from twisted.application import service, internet
-from twisted.internet import endpoints, protocol
+from twisted.application import service
 from twisted.python import log
 from twisted.python import usage
 from pymaster.q3.master_server import Q3MasterServerProtocol
