@@ -1,10 +1,9 @@
-import sys, json
+import sys
+import json
 from twisted.internet import reactor
 from twisted.web import server, resource
-from twisted.web.static import File
 from twisted.python import log
 from datetime import datetime
-
 
 
 class ServerList(resource.Resource):
@@ -27,6 +26,7 @@ class ServerList(resource.Resource):
             else:
                 return NotFound(self)
 
+
 class ListServers(resource.Resource):
     servers = {}
 
@@ -37,19 +37,21 @@ class ListServers(resource.Resource):
     def render_GET(self, request):
         return json.dumps(self.servers)
 
+
 class NotFound(resource.Resource):
     def __init__(self, node):
         self.node = node
 
     def render_GET(self, request):
-        return "available resources is:<br> " + " ".join(self.node.children.keys())
-        return "%s"%(self.node.children.keys())
+        return "available resources is:<br> " +\
+                " ".join(self.node.children.keys())
+        return "%s" % (self.node.children.keys())
 
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
-    log.msg("Starting server: %s"%(str(datetime.now())))
+    log.msg("Starting server: %s" % (str(datetime.now())))
 
-    servers = {"123.123.123.123: 3030": {1:1, 2:2}}
+    servers = {"123.123.123.123: 3030": {1: 1, 2: 2}}
     root = ServerList(servers)
 
     server = server.Site(root)
