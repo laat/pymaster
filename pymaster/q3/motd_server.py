@@ -5,8 +5,8 @@ Description: A simple MOTD server that displays a given text string
 
 RTCW motd port: 27951
 '''
-from protocol.utils.wolfutil import server_response_to_dict
-from protocol.q3 import Q3Protocol
+from utils.wolfutil import server_response_to_dict
+from protocol import Q3Protocol
 
 
 class Q3MotdServerProtocol(Q3Protocol):

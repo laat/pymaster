@@ -6,11 +6,11 @@ Description: Master Server implementation
 This implementation aims to cover all games that uses the quake 3
 protocol
 '''
-from pymaster.protocol.utils.q3util import infostring_to_dict
-from pymaster.protocol.utils.q3util import pack_host, unpack_host
+from utils.q3util import infostring_to_dict
+from utils.q3util import pack_host, unpack_host
 from twisted.internet.task import LoopingCall
 from twisted.python import log
-from pymaster.protocol.q3 import Q3Protocol
+from protocol import Q3Protocol
 import sys
 
 
