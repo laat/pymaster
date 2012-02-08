@@ -23,7 +23,7 @@ class Q3Protocol(DatagramProtocol):
         """
         Sends a message witht the correct prefix
         """
-        self.transport.write('%s%s\n'%(self.packet_prefix, message), address)
+        self.transport.write('%s%s\n' % (self.packet_prefix, message), address)
 
     def datagramReceived(self, data, (host, port)):
         if data.startswith(self.packet_prefix):

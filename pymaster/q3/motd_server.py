@@ -14,7 +14,8 @@ class Q3MotdServerProtocol(Q3Protocol):
         content.strip("\"").lstrip("\"").lstrip("\\")
         infodict = server_response_to_dict(content)
         motd = "Hello World!"
-        returnstring = "motd \"challenge\\%s\\%s\\\"" % (infodict["challenge"], motd)
+        returnstring = "motd \"challenge\\%s\\%s\\\"" %\
+                (infodict["challenge"], motd)
 
         self.sendMessage(returnstring, (host, port))
 

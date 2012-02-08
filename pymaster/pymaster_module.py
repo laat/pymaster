@@ -5,6 +5,7 @@ from pymaster.q3.master_server import Q3MasterServerProtocol
 
 Q3MASTER_PORT = "27950"
 
+
 class Options(usage.Options):
     optFlags = [
         ['debug', 'd', 'Emit debug messages']
@@ -13,6 +14,7 @@ class Options(usage.Options):
         ["q3master_port", "p", Q3MASTER_PORT,
             "port the q3 master server runs on"]
     ]
+
 
 class MasterServerService(service.Service):
     name = "Q3 Master Service"
@@ -24,7 +26,9 @@ class MasterServerService(service.Service):
         from twisted.internet import reactor
         log.msg("starting server")
         self.server = reactor.listenUDP(self.port, Q3MasterServerProtocol())
-        self.server.protocol.getservers(('64.22.107.125', 27950), ["57","empty", "full"]) # wolfmaster.s4ndmod.com
+        self.server.protocol.getservers(('64.22.107.125', 27950),
+                ["57", "empty", "full"])  # wolfmaster.s4ndmod.com
+
 
 def makeService(options):
     ms = service.MultiService()
