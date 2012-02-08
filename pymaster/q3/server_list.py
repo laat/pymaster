@@ -27,6 +27,9 @@ class ProtocolIndex(object):
     def get_servers(self, protocol):
         return list(self.protocol_index[protocol])
 
+    def get_protocols(self):
+        return self.protocol_index.keys()
+
 
 class Servers(object):
     """
@@ -115,6 +118,16 @@ class Servers(object):
 
     def get(self, host, port):
         return self.servers[host][port]
+
+    def get_protocols(self):
+        return self.protocol_index.get_protocols()
+
+    def get_servers_info(self, protocol):
+        all_servers = self.protocol_index.get_servers(protocol)
+        servers = {}
+        for host, port in all_servers:
+            servers[host] = {port: self.servers[host][port]["infodict"]}
+        return servers
 
     def get_servers(self, protocol, empty=True, full=True, gametype=None):
         all_servers = self.protocol_index.get_servers(protocol)
