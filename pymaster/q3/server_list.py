@@ -14,7 +14,7 @@ class ProtocolIndex(object):
     """
     A class for quick lookups when replying to getservers
     """
-    protocol_index = defaultdict(set)  #for quick lookups
+    protocol_index = defaultdict(set)  # for quick lookups
 
     def add_server(self, protocol, host, port):
         self.protocol_index[protocol].add((host, port))
@@ -26,6 +26,7 @@ class ProtocolIndex(object):
 
     def get_servers(self, protocol):
         return list(self.protocol_index[protocol])
+
 
 class Servers(object):
     """
@@ -44,7 +45,7 @@ class Servers(object):
         if time.time() - self.servers[host][port]["timestamp"] > 400:
             self.remove_server(host, port)
             self.protocol_index.remove_server(host, port)
-            log.msg("timeout %s:%s"%(host, port))
+            log.msg("timeout %s:%s" % (host, port))
 
     def _new_server(self, host, port):
         """ initialises a new server instance """
@@ -58,9 +59,8 @@ class Servers(object):
         self.servers[host][port]["tasks"] = [timeout_task]
 
         new = challenge
-        log.msg("added a new server: %s:%s"%(host, port))
+        log.msg("added a new server: %s:%s" % (host, port))
         return new
-
 
     def update(self, infodict, host, port):
         """
@@ -68,7 +68,7 @@ class Servers(object):
         returns the challenge if the server is new
         """
         new = False  # if this server is new, return new challenge key
-        if not port in self.servers[host]: #NEW
+        if not port in self.servers[host]:  # NEW
             new = self._new_server(host, port)
 
         # add timestamp
@@ -78,7 +78,7 @@ class Servers(object):
         #  update the server with new infodict
         if infodict:
             if "challenge" in infodict and server["challenge"] == infodict["challenge"]:  # spoofprotect
-                del infodict["challenge"] # this is not needed any more
+                del infodict["challenge"]  # this is not needed any more
                 server["infodict"].update(infodict)
                 server["empty"] = infodict["clients"] == "0"
                 server["full"] = infodict["sv_maxclients"] == infodict["clients"]
@@ -120,13 +120,13 @@ class Servers(object):
         all_servers = self.protocol_index.get_servers(protocol)
         if empty and full and not gametype:
             return all_servers
-        else:  #do some filtering
+        else:  # do some filtering
             srvs = []
             for host, port in all_servers:
                 s = self.servers[host][port]
 
                 filter_this = False
-                if not full and s["full"]: # Do not want full servers -> filter
+                if not full and s["full"]:  # Do not want full servers -> filter
                     filter_this = True
                 if not empty and s["empty"]:
                     filter_this = True
@@ -136,6 +136,6 @@ class Servers(object):
                 if not filter_this:
                     srvs.append((host, port))
                 else:
-                    pass  #print "filtered %s:%s"%(host, port)
+                    pass  # print "filtered %s:%s"%(host, port)
 
             return srvs
