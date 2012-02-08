@@ -6,8 +6,8 @@ Description: UDP protocol for Quake3
 
 from utils.q3util import find_command
 from twisted.internet.protocol import DatagramProtocol
-from twisted.internet import reactor
 from twisted.python import log
+
 
 class Q3Protocol(DatagramProtocol):
     """

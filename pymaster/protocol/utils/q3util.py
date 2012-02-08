@@ -31,11 +31,10 @@ def find_command(text):
     Returns command and arguments, splits on the first non-normal
     character
     """
-    index = 0
     for i, c in enumerate(text):
         if ord(c) <= ord(" ") or ord(c) == ord("\\"): # if it is not a normal character
-           index = i
-           break
+           break # using i later
+
     command = text[:i]
     content = text[i:].lstrip("\n").lstrip("\\")
     return command, content
@@ -56,8 +55,7 @@ def statusresponse_to_dict(response):
 
     lines = response.split("\n")
     infodict = infostring_to_dict(lines[0])
-    if statusResponse:
-        infodict["players"] = extract_player_list(lines[1:])
+    infodict["players"] = extract_player_list(lines[1:])
     return infodict
 
 def pack_host(host, port):
