@@ -11,4 +11,5 @@ Inspirations:
 
 The goal of this project is to provide a Quake 3 master server implementation.
 
-*This project does not work at the moment*
+for usage:
+`twistd pymaster --help`
