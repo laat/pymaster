@@ -11,7 +11,6 @@ from pymaster.protocol.utils.q3util import pack_host, unpack_host
 from twisted.internet.task import LoopingCall
 from twisted.python import log
 from pymaster.protocol.q3 import Q3Protocol
-from server_list import Servers
 import sys
 
 
@@ -19,8 +18,8 @@ flatlines = ["WolfFlatline-1", "ETFlatline-1"]
 
 
 class Q3MasterServerProtocol(Q3Protocol):
-    def __init__(self):
-        self.servers = Servers()
+    def __init__(self, servers):
+        self.servers = servers
         self.packet_prefix = '\xff' * 4  # todo should inherit
 
     def _update(self, infodict, host, port):
@@ -52,7 +51,7 @@ class Q3MasterServerProtocol(Q3Protocol):
                 challenge=self.servers.get(host, port)["challenge"])
 
     def getinfo(self, address, challenge=""):
-        log.msg("Sending getinfo %s to %s" % (challenge, address))
+        log.msg("Sending getinfo to %s:%s" % (address))
         self.sendMessage(" ".join(["getinfo", challenge]), address)
 
     def handle_gameCompleteStatus(self, content, host, port):
