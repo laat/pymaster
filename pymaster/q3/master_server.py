@@ -16,24 +16,11 @@ import sys
 
 flatlines = ["WolfFlatline-1", "ETFlatline-1"]
 
-
 class Q3MasterServerProtocol(Q3Protocol):
     def __init__(self, servers):
         self.servers = servers
         self.packet_prefix = '\xff' * 4  # todo should inherit
 
-    def _update(self, infodict, host, port):
-        if infodict is None:
-            infodict = {}
-        # the challenge if new
-        new_server = self.servers.update(infodict, host, port)
-        if new_server:
-            getinfo_task = LoopingCall(self.getinfo, (host, port),
-                    challenge=new_server)
-            self.servers.add_task(host, port, getinfo_task)
-            getinfo_task.start(300)  # 5 minute intervall between getinfo
-
-        return new_server
 
     def handle_heartbeat(self, content, host, port):
         """
@@ -134,6 +121,20 @@ class Q3MasterServerProtocol(Q3Protocol):
         for s in servers:
             t = unpack_host(s)
             self._update(None, t[0], t[1])
+
+    def _update(self, infodict, host, port):
+        if infodict is None:
+            infodict = {}
+
+        # the challenge if new
+        new_server = self.servers.update(infodict, host, port)
+        if new_server:
+            getinfo_task = LoopingCall(self.getinfo, (host, port),
+                    challenge=new_server)
+            self.servers.add_task(host, port, getinfo_task)
+            getinfo_task.start(300)  # 5 minute intervall between getinfo
+
+        return new_server
 
 
 if __name__ == '__main__':
