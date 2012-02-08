@@ -5,6 +5,7 @@ Description: A server list implementation
 '''
 from protocol.utils.wolfutil import build_challenge
 from twisted.internet.task import LoopingCall
+from twisted.python import log
 from collections import defaultdict
 import time
 
@@ -43,7 +44,7 @@ class Servers(object):
         if time.time() - self.servers[host][port]["timestamp"] > 400:
             self.remove_server(host, port)
             self.protocol_index.remove_server(host, port)
-            print "timeout %s:%s"%(host, port)
+            log.msg("timeout %s:%s"%(host, port))
 
     def _new_server(self, host, port):
         """ initialises a new server instance """
@@ -57,7 +58,7 @@ class Servers(object):
         self.servers[host][port]["tasks"] = [timeout_task]
 
         new = challenge
-        print "added a new server: %s:%s"%(host, port)
+        log.msg("added a new server: %s:%s"%(host, port))
         return new
 
 

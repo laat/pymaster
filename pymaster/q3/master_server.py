@@ -9,9 +9,10 @@ protocol
 from protocol.utils.q3util import infostring_to_dict
 from protocol.utils.q3util import pack_host, unpack_host
 from twisted.internet.task import LoopingCall
+from twisted.python import log
 from protocol.q3 import Q3Protocol
 from server_list import Servers
-import time
+import time, sys
 
 
 flatlines = ["WolfFlatline-1", "ETFlatline-1"]
@@ -41,22 +42,22 @@ class Q3MasterServerProtocol(Q3Protocol):
         works.
         TODO: Implement proper flatline handling
         """
-        print "heartbeat " + content
+        log.msg("heartbeat "+ content)
         if content in flatlines:
             return  # ignore
         self._update(None, host, port)
         self.getinfo(self, (host, port), challenge=self.servers.get(host, port)["challenge"])
 
     def getinfo(self, address, challenge = ""):
-        print "Sending getinfo %s to %s" % (challenge, address)
+        log.msg("Sending getinfo %s to %s" % (challenge, address))
         self.sendMessage(" ".join(["getinfo", challenge]), address)
 
     def handle_gameCompleteStatus(self, content, host, port):
-        print "gameCompleteStatus" + content
+        log.msg("gameCompleteStatus" + content)
         self._update(None, host, port)
 
     def handle_infoResponse(self, content, host, port):
-        print "infoResponse from %s:%s"%(host, port)
+        log.msg("infoResponse from %s:%s"%(host, port))
         infodict = infostring_to_dict(content)
         self._update(infodict, host, port)
 
@@ -74,7 +75,7 @@ class Q3MasterServerProtocol(Q3Protocol):
                 i = i + length
             yield servers[i:]
 
-        print "getserver" + content
+        log.msg("getserver" + content)
         end = "\\EOT\0\0\0"
         delim = "\\"
         max_servers_in_package = 30  # 18*8+(7*8*30)+4*8 = 1856
@@ -120,11 +121,11 @@ class Q3MasterServerProtocol(Q3Protocol):
                     (host, port))
 
     def getservers(self, address, argumentlist):
-        print "Sending getservers with arguments %s to %s" % (argumentlist, address)
+        log.msg("Sending getservers with arguments %s to %s" % (argumentlist, address))
         self.sendMessage("getservers "+ " ".join(argumentlist), address)
 
     def handle_getserversResponse(self, content, *args):
-        print "getserversResponse:"+content
+        log.msg("getserversResponse:")
         content = content.strip("\\EOT\0\0\0")
         servers = content.split("\\")
         for s in servers:
@@ -134,6 +135,7 @@ class Q3MasterServerProtocol(Q3Protocol):
 
 if __name__ == '__main__':
     from twisted.internet import reactor
+    log.startLogging(sys.stdout)
     server = reactor.listenUDP(27950, Q3MasterServerProtocol())
     #server.protocol._update(None,  "129.241.106.172", 27960)  # cky-beach
     #server.protocol.getservers(('129.241.105.225', 27950), ["57","empty", "full"]) # absint master

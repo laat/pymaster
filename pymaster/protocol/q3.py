@@ -7,6 +7,7 @@ Description: UDP protocol for Quake3
 from utils.q3util import find_command
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
+from twisted.python import log
 
 class Q3Protocol(DatagramProtocol):
     """
@@ -36,7 +37,7 @@ class Q3Protocol(DatagramProtocol):
                 self.sendMessage(response, (host, port))
 
         else:
-            print "a package with the wrong prefix received"
+            log.msg("a package with the wrong prefix received")
 
     def message(self, command, *args):
         """
@@ -45,7 +46,7 @@ class Q3Protocol(DatagramProtocol):
         handler = getattr(self, 'handle_%s' % (command, ), None)
 
         if not handler:
-            print "a handler for %s was not found" % (command, )
+            log.msg("a handler for %s was not found" % (command, ))
             return None
         try:
             return handler(*args)
