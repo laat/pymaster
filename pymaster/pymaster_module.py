@@ -36,8 +36,17 @@ class MasterServerService(service.Service):
         master_server = Q3MasterServerProtocol(self.server_list)
 
         self.server = reactor.listenUDP(self.port, master_server)
-        self.server.protocol.getservers(('64.22.107.125', 27950),
-                ["57", "empty", "full"])  # wolfmaster.s4ndmod.com
+
+        # wolfmaster.s4ndmod.com steal
+        from twisted.internet import reactor
+        reactor.callLater(5, self.server.protocol.getservers,
+                ('64.22.107.125', 27950), ["57", "empty", "full"])
+        reactor.callLater(10, self.server.protocol.getservers,
+                ('64.22.107.125', 27950), ["60", "empty", "full"])
+        reactor.callLater(15, self.server.protocol.getservers,
+                ('64.22.107.125', 27950), ["68", "empty", "full"])
+        reactor.callLater(20, self.server.protocol.getservers,
+                ('64.22.107.125', 27950), ["71", "empty", "full"])
 
 
 def makeService(options):

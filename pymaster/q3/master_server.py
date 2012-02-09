@@ -112,6 +112,10 @@ class Q3MasterServerProtocol(Q3Protocol):
     def getservers(self, address, argumentlist):
         log.msg("Sending getservers with arguments %s to %s" %\
                 (argumentlist, address))
+
+        loop = LoopingCall(self.getservers, address, argumentlist)
+        loop.start(1800, now=False)
+
         self.sendMessage("getservers " + " ".join(argumentlist), address)
 
     def handle_getserversResponse(self, content, *args):
