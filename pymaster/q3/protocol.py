@@ -16,17 +16,44 @@ class Q3Protocol(DatagramProtocol):
     To handle commands sendt to this server, one must add methods with
     the prefix handle_ with the ending of the command
     """
+    resends = {}
+
     def __init__(self):
+        self.resends = {}  # resend last package if no response
         self.packet_prefix = '\xff' * 4
 
     def sendMessage(self, message, address):
         """
         Sends a message witht the correct prefix
         """
+        from twisted.internet import reactor
+        calls = 0
+        if address in self.resends:
+            calls, task = self.resends[address]
+            del self.resends[address]
+            try:
+                task.cancel()  # send more often than the timeout?
+            except:
+                pass
+        calls += 1
+
+        if calls < 3:
+            self.resends[address] = (calls,
+                    reactor.callLater(10, self.sendMessage, message, address))
+
+        # finally send the message
         self.transport.write('%s%s\n' % (self.packet_prefix, message), address)
 
     def datagramReceived(self, data, (host, port)):
         if data.startswith(self.packet_prefix):
+            if (host, port) in self.resends:
+                _, task = self.resends[(host, port)]
+                try:
+                    task.cancel()
+                except:
+                    pass
+                del self.resends[(host, port)]
+
             #get the command from the package
             data = data.lstrip(self.packet_prefix)
             command, content = find_command(data)
