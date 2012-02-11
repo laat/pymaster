@@ -35,99 +35,109 @@ class Servers(object):
     """
     This object is in control of all the information about servers
     """
-    servers = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
+    servers = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
 
     def __init__(self):
         self.protocol_index = ProtocolIndex()
 
-    def _timeout(self, host, port):
+    def bump_time(self, host, port):
+        """ bumps the time stamp, so we do not time out """
+        self.servers[(host, port)]["timestamp"] = time.time()
+
+    def get_or_create_server(self, host, port):
         """
-        The method is called when the server has not been heared from
-        the last 400 secounds
+        Creates new servers if not in list
+        returns the challenge to the server
         """
-        if time.time() - self.servers[host][port]["timestamp"] > 400:
-            self.remove_server(host, port)
-            self.protocol_index.remove_server(host, port)
-            log.msg("timeout %s:%s" % (host, port))
+        new = not (host, port) in self.servers  # server is new
+        if new:
+            challenge = self._new_server(host, port)
+        else:
+            challenge = self.servers[(host,port)]["challenge"]
+
+        return challenge, new
 
     def _new_server(self, host, port):
-        """ initialises a new server instance """
-        #self.servers[host][port]["state"] = SV_STATE["unknown"]
+        """ 
+        initialises a new server instance
+        returns the challenge
+        """
         challenge = build_challenge()  # randomized challenge
-        self.servers[host][port]["challenge"] = challenge
+        self.servers[(host, port)]["challenge"] = challenge
 
         # remove the server after a timeout
         timeout_task = LoopingCall(self._timeout, host, port)
         timeout_task.start(200, now=False)
-        self.servers[host][port]["tasks"] = [timeout_task]
+        self.servers[host, port]["tasks"] = [timeout_task]
 
-        new = challenge
         log.msg("added a new server: %s:%s" % (host, port))
-        return new
 
-    def update(self, infodict, host, port):
+        return challenge
+
+    def update(self, host, port, infodict=None, statusdict=None):
         """
         Updates information about this server
         returns the challenge if the server is new
         """
-        new = False  # if this server is new, return new challenge key
-        if not port in self.servers[host]:  # NEW
-            new = self._new_server(host, port)
+        self.get_or_create_server(host, port)  # create the server if unknown
 
-        # add timestamp
-        server = self.servers[host][port]
-        server["timestamp"] = time.time()
+        server = self.servers[(host, port)]
+        self.bump_time(host, port)
 
-        #  update the server with new infodict
+        challenge_match = False
         if infodict:
-            if "challenge" in infodict and server["challenge"] == infodict["challenge"]:  # spoofprotect
-                del infodict["challenge"]  # this is not needed any more
-                server["infodict"].update(infodict)
-                server["empty"] = infodict["clients"] == "0"
-                server["full"] = infodict["sv_maxclients"] == infodict["clients"]
-            else:
-                self.remove_server(host, port)
+            challenge_match = "challenge" in infodict and\
+                server["challenge"] == infodict["challenge"]
+        if statusdict:
+            challenge_match = "challenge" in statusdict and\
+                server["challenge"] == statusdict["challenge"]
 
-            # add the server to the protocol index
+        #  update the server with new info
+        if infodict and challenge_match:
+            del infodict["challenge"]  # this is not needed any more
+            server["infodict"].update(infodict)
+
+                #calculate now for filtering later
+            server["empty"] = infodict["clients"] == "0"
+            server["full"] = infodict["sv_maxclients"] == infodict["clients"]
+
+                # add the server to the protocol index
             if "protocol" in infodict:
-                self.protocol_index.add_server(infodict["protocol"], host, port)
+                self.protocol_index.add_server(infodict["protocol"], 
+                            host, port)
+            else:
+                log.msg("SPOOF!: challenge from %s:%s did not match local" %
+                        (host, port))
 
-        return new
+        if statusdict and challenge_match:
+            del statusdict["challenge"]  # not needed
+            server["statusdict"].update(statusdict)
+
+        return 
 
     def remove_server(self, host, port):
+        self.protocol_index.remove_server(host, port)
         self.stop_tasks(host, port)
-        del self.servers[host][port]
+        del self.servers[(host, port)]
 
     def add_task(self, host, port, task):
         """
         tasks connected to this server
         """
-        server = self.servers[host][port]
+        server = self.servers[(host, port)]
         server["tasks"].append(task)
 
     def stop_tasks(self, host, port):
         """
         stop all tasks associated with this server
         """
-        server = self.servers[host][port]
-        try:
-            for t in server["tasks"]:
+        server = self.servers[(host, port)]
+        for t in server["tasks"]:
+            try:
                 t.stop()
-        except:
-            pass
+            except Exception, e:
+                pass
 
-    def get(self, host, port):
-        return self.servers[host][port]
-
-    def get_protocols(self):
-        return self.protocol_index.get_protocols()
-
-    def get_servers_info(self, protocol):
-        all_servers = self.protocol_index.get_servers(protocol)
-        servers = {}
-        for host, port in all_servers:
-            servers[host] = {port: self.servers[host][port]["infodict"]}
-        return servers
 
     def get_servers(self, protocol, empty=True, full=True, gametype=None):
         all_servers = self.protocol_index.get_servers(protocol)
@@ -136,7 +146,7 @@ class Servers(object):
         else:  # do some filtering
             srvs = []
             for host, port in all_servers:
-                s = self.servers[host][port]
+                s = self.servers[(host, port)]
 
                 filter_this = False
                 if not full and s["full"]:  # Do not want full servers -> filter
@@ -152,3 +162,30 @@ class Servers(object):
                     pass  # print "filtered %s:%s"%(host, port)
 
             return srvs
+
+    def _timeout(self, host, port):
+        """
+        The method is called when the server has not been heared from
+        the last 400 secounds
+        """
+        if time.time() - self.servers[(host, port)]["timestamp"] > 400:
+            self.remove_server(host, port)
+            log.msg("timeout %s:%s" % (host, port))
+
+    def get(self, host, port):
+        return self.servers[(host, port)]
+
+    def get_protocols(self):
+        return self.protocol_index.get_protocols()
+
+    def get_servers_info(self, protocol):
+        all_servers = self.protocol_index.get_servers(protocol)
+        servers = {}
+        for host, port in all_servers:
+            servers["%s:%s" % (host, port)] =\
+                    self.servers[(host, port)]["infodict"]
+        return servers
+
+    def get_server_status(self, host, port):
+        port = int(port)
+        return {"%s:%s" % (host, port): self.servers[(host, port)]["statusdict"]}

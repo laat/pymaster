@@ -3,7 +3,7 @@ from twisted.application import internet
 from twisted.python import log
 from twisted.python import usage
 from twisted.web import server
-from pymaster.q3.master_server import Q3MasterServerProtocol
+from pymaster.q3.master_server import MasterServer
 from pymaster.q3.server_list import Servers
 from pymaster.q3.server_json_list import Root
 
@@ -26,14 +26,14 @@ class Options(usage.Options):
 class MasterServerService(service.Service):
     name = "Q3 Master"
 
-    def __init__(self, port):
+    def __init__(self, port, server_list):
         self.port = port
         self.server_list = Servers()
 
     def startService(self):
         from twisted.internet import reactor
         log.msg("Starting %s Server on port %s" % (self.name, self.port))
-        master_server = Q3MasterServerProtocol(self.server_list)
+        master_server = MasterServer(self.server_list)
 
         self.server = reactor.listenUDP(self.port, master_server)
 
@@ -50,12 +50,13 @@ class MasterServerService(service.Service):
 
 
 def makeService(options):
+    server_list = Servers()
     ms = service.MultiService()
 
-    q3_master = MasterServerService(int(options["q3master_port"]))
+    q3_master = MasterServerService(int(options["q3master_port"]), server_list)
     q3_master.setServiceParent(ms)
 
-    json_root = server.Site(Root(q3_master.server_list))
+    json_root = server.Site(Root(server_list))
     json_api = internet.TCPServer(int(options["json_api_port"]), json_root)
     json_api.setServiceParent(ms)
 

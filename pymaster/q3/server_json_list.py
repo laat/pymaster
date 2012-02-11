@@ -54,6 +54,7 @@ class ServerList(resource.Resource):
             return "/serverlist/57 <br> the 57 means the protocol number "
         else:
             protocol = request.postpath[0]
+            print self.servers.get_servers_info(protocol)
             return json.dumps(self.servers.get_servers_info(protocol))
 
 
@@ -68,7 +69,11 @@ class Server(resource.Resource):
         resource.Resource.__init__(self)
 
     def render_GET(self, request):
-        return "to be implemented"
+        if len(request.postpath) != 2:
+            return "server/10.0.0.1/27000 <br> server/ip/port"
+        else:
+            ip, port = request.postpath
+            return json.dumps(self.servers.get_server_status(ip, port))
 
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
