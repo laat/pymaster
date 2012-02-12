@@ -4,7 +4,7 @@ Author: Sigurd Fosseng
 Description: Master Server implementation
 '''
 from protocol.master_server import MasterServerProtocol
-from protocol.master_server import MasterServerClientProtocol
+from protocol.client import MasterServerClientProtocol
 from twisted.internet.task import LoopingCall
 from twisted.python import log
 from random import randint
