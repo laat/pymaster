@@ -12,7 +12,7 @@ from protocol import Q3Protocol
 
 class ServerClientProtocol(Q3Protocol):
     """
-    Information queries sent to the game server
+    Client <-> Server protocol
     """
     def getinfo(self, ip, port, challenge=""):
         log.msg("Sending getinfo to %s:%s" % (ip, port))
@@ -33,13 +33,16 @@ class ServerClientProtocol(Q3Protocol):
         self._update_status(statusdict, ip, port)
 
     def _update_info(self, infodict, ip, port):
-        pass
+        raise NotImplementedError
 
     def _update_status(self, statusdict, ip, port):
-        pass
+        raise NotImplementedError
+
 
 class MasterServerClientProtocol(Q3Protocol):
-    """ Queries to the master server """
+    """
+    Client <-> Master Server protocol
+    """
 
     def getservers(self, address, argumentlist):
         log.msg("Sending getservers with arguments %s to %s" %\
@@ -56,4 +59,8 @@ class MasterServerClientProtocol(Q3Protocol):
             self._get_or_create_server(t[0], t[1])
 
     def get_or_create_server(self, ip, port):
-        pass
+        """
+        Should return a tuple of (challenge_string, boolean)
+        where the boolean indicates that it was created
+        """
+        raise NotImplementedError

@@ -1,7 +1,7 @@
 '''
 File: master_servers.py
 Author: Sigurd Fosseng
-Description: Master server protocols for q3
+Description: Master server protocols for Quake 3
 '''
 from pymaster.q3.utils.q3util import pack_host
 from client import ServerClientProtocol
@@ -9,8 +9,14 @@ from client import MasterServerClientProtocol
 from twisted.python import log
 
 class HeartBeatServerProtocol(ServerClientProtocol):
-    """ a simple heartbeat protocol """
-    flatlines = ["WolfFlatline-1", "ETFlatline-1"]
+    """
+    Server -> Master Server protocol
+    """
+    flatlines = [
+            "WolfFlatline-1",  # RTCW
+            "ETFlatline-1",  # ET
+            "flatline",  # CoD 4! =)
+        ]
 
     def handle_heartbeat(self, content, ip, port):
         log.msg("heartbeat from %s:%s" % (ip, port))
@@ -32,7 +38,11 @@ class HeartBeatServerProtocol(ServerClientProtocol):
         self._get_or_create_server(ip, port)
 
     def _get_or_create_server(self, ip, port):
-        pass
+        """
+        Should return a tuple of (challenge_string, boolean)
+        where the boolean indicates that it was created
+        """
+        raise NotImplementedError
 
 class MasterServerProtocol(HeartBeatServerProtocol):
     def handle_getservers(self, content, host, port):
@@ -112,8 +122,10 @@ class MasterServerProtocol(HeartBeatServerProtocol):
 
     def _get_servers(self, protocol, empty=True,
             full=True, gametype=5):
-        """ implement me """
-        pass
+        """
+        Should return a list of (host, ip) tuples
+        """
+        raise NotImplementedError
 
 class SnoopingMasterServerProtocol(MasterServerProtocol,
         MasterServerClientProtocol):
