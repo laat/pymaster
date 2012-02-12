@@ -126,11 +126,3 @@ class MasterServerProtocol(HeartBeatServerProtocol):
         Should return a list of (host, ip) tuples
         """
         raise NotImplementedError
-
-class SnoopingMasterServerProtocol(MasterServerProtocol,
-        MasterServerClientProtocol):
-    pass
-
-class SnoopingHeartBeatServerProtocol(HeartBeatServerProtocol,
-        MasterServerClientProtocol):
-    pass

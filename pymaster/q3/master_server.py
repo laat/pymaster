@@ -3,17 +3,21 @@ File: master_server.py
 Author: Sigurd Fosseng
 Description: Master Server implementation
 '''
-from protocol.master_server import SnoopingMasterServerProtocol
+from protocol.master_server import MasterServerProtocol
+from protocol.master_server import MasterServerClientProtocol
 from twisted.internet.task import LoopingCall
 from twisted.python import log
 from random import randint
 import sys
 
 
-class MasterServer(SnoopingMasterServerProtocol):
+
+class MasterServer(MasterServerProtocol,
+        MasterServerClientProtocol):
     def __init__(self, servers):
         self.servers = servers
-        SnoopingMasterServerProtocol.__init__(self)
+        MasterServerProtocol.__init__(self)
+        MasterServerClientProtocol.__init__(self)
 
     def loop_getservers(self, address, argumentlist, delay):
         from twisted.internet import reactor
