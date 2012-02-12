@@ -3,7 +3,7 @@ File: server_list.py
 Author: Sigur Fosseng
 Description: A server list implementation
 '''
-from utils.q3util import build_challenge
+from protocol.utils.q3util import build_challenge
 from twisted.internet.task import LoopingCall
 from twisted.python import log
 from collections import defaultdict

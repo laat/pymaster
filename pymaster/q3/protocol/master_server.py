@@ -3,9 +3,8 @@ File: master_servers.py
 Author: Sigurd Fosseng
 Description: Master server protocols for Quake 3
 '''
-from pymaster.q3.utils.q3util import pack_host
+from utils.q3util import pack_host
 from client import ServerClientProtocol
-from client import MasterServerClientProtocol
 from twisted.python import log
 
 class HeartBeatServerProtocol(ServerClientProtocol):

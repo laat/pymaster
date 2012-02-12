@@ -1,11 +1,11 @@
 '''
 File: clients.py
 Author: Sigurd Fosseng
-Description: Client protocols for quake3
+Description: Client protocols for Quake 3
 '''
-from pymaster.q3.utils.q3util import unpack_host
-from pymaster.q3.utils.q3util import infostring_to_dict
-from pymaster.q3.utils.q3util import statusresponse_to_dict
+from utils.q3util import unpack_host
+from utils.q3util import infostring_to_dict
+from utils.q3util import statusresponse_to_dict
 from twisted.python import log
 from protocol import Q3Protocol
 

@@ -4,7 +4,7 @@ Author: Sigurd Fosseng
 Description: UDP protocol for Quake3
 '''
 
-from pymaster.q3.utils.q3util import find_command
+from utils.q3util import find_command
 from twisted.internet.protocol import DatagramProtocol
 from twisted.python import log
 
