@@ -74,12 +74,3 @@ class Server(resource.Resource):
         else:
             ip, port = request.postpath
             return json.dumps(self.servers.get_server_status(ip, port))
-
-if __name__ == '__main__':
-    log.startLogging(sys.stdout)
-    log.msg("Starting server: %s" % (str(datetime.now())))
-    root = Root()
-    server = server.Site(root)
-    reactor.listenTCP(8080, server)
-
-    reactor.run()

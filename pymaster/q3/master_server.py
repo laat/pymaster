@@ -53,17 +53,3 @@ class MasterServer(MasterServerProtocol,
 
     def _update_status(self, statusdict, ip, port):
         self.servers.update(ip, port, statusdict=statusdict)
-
-if __name__ == '__main__':
-    from twisted.internet import reactor
-    from server_list import Servers
-    server_list = Servers()
-    log.startLogging(sys.stdout)
-    ms = MasterServer(server_list)
-    server = reactor.listenUDP(27950, ms)
-    print dir(server.protocol)
-    server.protocol.getinfo("188.40.127.132", 27886)  # beach
-    server.protocol.getservers(('64.22.107.125', 27950),
-            ["57", "empty", "full"])  # wolfmaster.s4ndmod.com
-    #server.protocol._update(None,  "129.241.106.172", 27960)  # cky-beach
-    reactor.run()
