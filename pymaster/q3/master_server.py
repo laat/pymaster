@@ -6,16 +6,15 @@ Description: Master Server implementation
 from protocol.master_server import MasterServerProtocol
 from protocol.client import MasterServerClientProtocol
 from twisted.internet.task import LoopingCall
-from twisted.python import log
 from random import randint
-import sys
-
+from abuse_filter import AbusiveClientFilter
 
 
 class MasterServer(MasterServerProtocol,
         MasterServerClientProtocol):
     def __init__(self, servers):
         self.servers = servers
+        self.abusive_filter = AbusiveClientFilter()
         MasterServerProtocol.__init__(self)
         MasterServerClientProtocol.__init__(self)
 
@@ -53,3 +52,9 @@ class MasterServer(MasterServerProtocol,
 
     def _update_status(self, statusdict, ip, port):
         self.servers.update(ip, port, statusdict=statusdict)
+
+    def datagramReceived(self, data, (host, port)):
+        if self.abusive_filter.filter_now(host):
+            return  # filter this package
+
+        MasterServerProtocol.datagramReceived(self, data, (host, port))
