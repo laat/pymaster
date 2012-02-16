@@ -25,7 +25,7 @@ class maxdict(dict):
 class AbusiveClientFilter(object):
     # it could very well be 1000, it's the 10's of thosands that's bad
     # and I doubt legitimate use vill ever exeed this number.
-    throttle = 20
+    throttle = 50
 
     # slips a package through every 30 secounds or so at decay=10
     decay = 10
@@ -50,7 +50,6 @@ class AbusiveClientFilter(object):
         if host in self.counts:
             client = self.counts[host]
             client_count = self._compute_throttle(client) + 1
-            print client_count
             if (client_count > self.throttle):  # blocked
                 self.counts[host] = (client_count, client[1])
                 return True
