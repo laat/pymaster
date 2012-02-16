@@ -17,9 +17,14 @@ class maxdict(dict):
         return dict.__getitem__(self, key)
 
     def __setitem__(self, key, value):
-        if len(self._stack) >= self._max_length:
-            self.__delitem__(self._stack.pop(0))
-        self._stack.append(key)
+        if not dict.__contains__(self, key):
+            if len(self._stack) >= self._max_length:
+                self.__delitem__(self._stack.pop(0))
+            self._stack.append(key)
+        else:
+            self._stack.remove(key)
+            self._stack.append(key)
+
         dict.__setitem__(self, key, value)
 
 class AbusiveClientFilter(object):
