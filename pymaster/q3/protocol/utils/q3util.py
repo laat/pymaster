@@ -9,7 +9,6 @@ from itertools import izip
 from struct import unpack
 from struct import pack
 
-
 def build_challenge():
     """
     Build a challenge string for a "getinfo" message
@@ -42,10 +41,13 @@ def find_command(text):
     content = text[i:].lstrip("\n").lstrip("\\")
     return command, content
 
-
+allowed_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
 def infostring_to_dict(response):
     """takes a single line of infostring and creates a defaultdict"""
     info = response.split("\\")
+    # strip non printable
+    for i, information in enumerate(info):
+        info[i] = filter(lambda x: x in allowed_chars, information)
     i = iter(info)
     infodict = dict(izip(i, i))
     return infodict
@@ -60,6 +62,9 @@ def statusresponse_to_dict(response):
 
     lines = response.split("\n")
     infodict = infostring_to_dict(lines[0])
+
+    player_list = extract_player_list(lines[1:])
+    player_list = filter(lambda x: x in allowed_chars, player_list)
     infodict["players"] = extract_player_list(lines[1:])
     return infodict
 
