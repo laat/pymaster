@@ -33,17 +33,19 @@ class MasterServer(MasterServerProtocol,
     get_servers = _get_servers  # expose this
 
     def _get_or_create_server(self, ip, port):
+        from twisted.internet import reactor
         challenge, new = self.servers.get_or_create_server(ip, port)
         if new:  # start polling for info
             getinfo_task = LoopingCall(self.getinfo, ip, port,
                     challenge=challenge)
             self.servers.add_task(ip, port, getinfo_task)
-            getinfo_task.start(300) # 5 minute intervall between getinfo
+            # not all at once.
+            reactor.callLater(randint(1,40), getinfo_task.start, 300)
 
             getstatus_task = LoopingCall(self.getstatus, ip, port,
                     challenge=challenge)
             self.servers.add_task(ip, port, getstatus_task)
-            getstatus_task.start(300) # 5 minute intervall between getstatus
+            reactor.callLater(randint(1,40), getstatus_task.start, 300)
 
         return challenge, new
 
