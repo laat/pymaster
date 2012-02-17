@@ -1,10 +1,5 @@
-import sys
 import json
-from twisted.internet import reactor
 from twisted.web import resource
-from twisted.web import server
-from twisted.python import log
-from datetime import datetime
 
 
 class Root(resource.Resource):
@@ -36,6 +31,8 @@ class Protocols(resource.Resource):
         resource.Resource.__init__(self)
 
     def render_GET(self, request):
+        request.setHeader('Content-type', 'application/json')
+        request.setHeader('Access-Control-Allow-Origin', '*')
         return json.dumps(self.servers.get_protocols())
 
 
@@ -53,8 +50,9 @@ class ServerList(resource.Resource):
         if request.postpath == []:
             return "/serverlist/57 <br> the 57 means the protocol number "
         else:
+            request.setHeader('Content-type', 'application/json')
+            request.setHeader('Access-Control-Allow-Origin', '*')
             protocol = request.postpath[0]
-            print self.servers.get_servers_info(protocol)
             return json.dumps(self.servers.get_servers_info(protocol))
 
 
@@ -72,5 +70,7 @@ class Server(resource.Resource):
         if len(request.postpath) != 2:
             return "server/10.0.0.1/27000 <br> server/ip/port"
         else:
+            request.setHeader('Content-type', 'application/json')
+            request.setHeader('Access-Control-Allow-Origin', '*')
             ip, port = request.postpath
             return json.dumps(self.servers.get_server_status(ip, port))
