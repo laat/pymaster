@@ -58,11 +58,12 @@ class Servers(object):
         return challenge, new
 
     def _new_server(self, host, port):
-        """ 
+        """
         initialises a new server instance
         returns the challenge
         """
         challenge = build_challenge()  # randomized challenge
+        self.bump_time(host, port)
         self.servers[(host, port)]["challenge"] = challenge
 
         # remove the server after a timeout
@@ -103,7 +104,7 @@ class Servers(object):
 
                 # add the server to the protocol index
             if "protocol" in infodict:
-                self.protocol_index.add_server(infodict["protocol"], 
+                self.protocol_index.add_server(infodict["protocol"],
                             host, port)
             else:
                 log.msg("SPOOF!: challenge from %s:%s did not match local" %
@@ -112,8 +113,11 @@ class Servers(object):
         if statusdict and challenge_match:
             del statusdict["challenge"]  # not needed
             server["statusdict"].update(statusdict)
+            if "sv_privateClients" in statusdict:
+                server["infodict"]["sv_privateClients"] =\
+                        statusdict["sv_privateClients"]
 
-        return 
+        return
 
     def remove_server(self, host, port):
         self.protocol_index.remove_server(host, port)
@@ -180,12 +184,13 @@ class Servers(object):
 
     def get_servers_info(self, protocol):
         all_servers = self.protocol_index.get_servers(protocol)
-        servers = {}
+        servers = []
         for host, port in all_servers:
-            servers["%s:%s" % (host, port)] =\
-                    self.servers[(host, port)]["infodict"]
+            tmp = {"_host_port": "%s:%s" % (host, port), }
+            tmp.update(self.servers[(host, port)]["infodict"])
+            servers.append(tmp)
         return servers
 
     def get_server_status(self, host, port):
         port = int(port)
-        return {"%s:%s" % (host, port): self.servers[(host, port)]["statusdict"]}
+        return self.servers[(host, port)]["statusdict"]
