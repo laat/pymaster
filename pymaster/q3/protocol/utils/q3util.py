@@ -57,7 +57,7 @@ def statusresponse_to_dict(response):
     def extract_player_list(lines):
         players = []
         for p in lines:
-            players.append(p.split(" ", 3)[-1])
+            players.append(p.split(" ", 3)[-1][1:-1])
         return players
 
     lines = response.split("\n")
