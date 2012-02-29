@@ -3,11 +3,11 @@ File: clients.py
 Author: Sigurd Fosseng
 Description: Client protocols for Quake 3
 '''
-from utils.q3util import unpack_host
-from utils.q3util import infostring_to_dict
-from utils.q3util import statusresponse_to_dict
+from .utils.q3util import unpack_host
+from .utils.q3util import infostring_to_dict
+from .utils.q3util import statusresponse_to_dict
 from twisted.python import log
-from protocol import Q3Protocol
+from .protocol import Q3Protocol
 
 
 class ServerClientProtocol(Q3Protocol):

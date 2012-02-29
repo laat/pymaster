@@ -3,7 +3,7 @@ File: server_list.py
 Author: Sigur Fosseng
 Description: A server list implementation
 '''
-from protocol.utils.q3util import build_challenge
+from .protocol.utils.q3util import build_challenge
 from twisted.internet.task import LoopingCall
 from twisted.python import log
 from collections import defaultdict
@@ -20,7 +20,7 @@ class ProtocolIndex(object):
         self.protocol_index[protocol].add((host, port))
 
     def remove_server(self, host, port):
-        for protocol, servers in self.protocol_index.iteritems():
+        for _, servers in self.protocol_index.iteritems():
             if (host, port) in servers:
                 servers.remove((host, port))
 
@@ -53,7 +53,7 @@ class Servers(object):
         if new:
             challenge = self._new_server(host, port)
         else:
-            challenge = self.servers[(host,port)]["challenge"]
+            challenge = self.servers[(host, port)]["challenge"]
 
         return challenge, new
 
@@ -114,7 +114,7 @@ class Servers(object):
             del statusdict["challenge"]  # not needed
             server["statusdict"].update(statusdict)
             if "sv_privateClients" in statusdict:
-                server["infodict"]["sv_privateClients"] =\
+                server["infodict"]["sv_privateClients"] = \
                         statusdict["sv_privateClients"]
 
         return
@@ -139,7 +139,7 @@ class Servers(object):
         for t in server["tasks"]:
             try:
                 t.stop()
-            except Exception, e:
+            except:
                 pass
 
 

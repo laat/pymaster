@@ -3,11 +3,11 @@ File: master_server.py
 Author: Sigurd Fosseng
 Description: Master Server implementation
 '''
-from protocol.master_server import MasterServerProtocol
-from protocol.client import MasterServerClientProtocol
+from .protocol.master_server import MasterServerProtocol
+from .protocol.client import MasterServerClientProtocol
 from twisted.internet.task import LoopingCall
 from random import randint
-from abuse_filter import AbusiveClientFilter
+from .abuse_filter import AbusiveClientFilter
 
 
 class MasterServer(MasterServerProtocol,
@@ -30,8 +30,6 @@ class MasterServer(MasterServerProtocol,
         return self.servers.get_servers(protocol, empty=empty, full=full,
                 gametype=gametype)
 
-    get_servers = _get_servers  # expose this
-
     def _get_or_create_server(self, ip, port):
         from twisted.internet import reactor
         challenge, new = self.servers.get_or_create_server(ip, port)
@@ -40,12 +38,12 @@ class MasterServer(MasterServerProtocol,
                     challenge=challenge)
             self.servers.add_task(ip, port, getinfo_task)
             # not all at once.
-            reactor.callLater(randint(1,40), getinfo_task.start, 300)
+            reactor.callLater(randint(1, 40), getinfo_task.start, 300)
 
             getstatus_task = LoopingCall(self.getstatus, ip, port,
                     challenge=challenge)
             self.servers.add_task(ip, port, getstatus_task)
-            reactor.callLater(randint(1,40), getstatus_task.start, 300)
+            reactor.callLater(randint(1, 40), getstatus_task.start, 300)
 
         return challenge, new
 

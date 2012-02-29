@@ -3,8 +3,8 @@ File: master_servers.py
 Author: Sigurd Fosseng
 Description: Master server protocols for Quake 3
 '''
-from utils.q3util import pack_host
-from client import ServerClientProtocol
+from .utils.q3util import pack_host
+from .client import ServerClientProtocol
 from twisted.python import log
 
 class HeartBeatServerProtocol(ServerClientProtocol):
@@ -23,7 +23,7 @@ class HeartBeatServerProtocol(ServerClientProtocol):
         if content in self.flatlines:
             return  # ignore, could be spoofed
 
-        challenge, new = self._get_or_create_server(ip, port)
+        challenge, _ = self._get_or_create_server(ip, port)
         self.getinfo(ip, port, challenge=challenge)
 
         # I like to save a bit more info
@@ -66,7 +66,8 @@ class MasterServerProtocol(HeartBeatServerProtocol):
                     delim.join(packed_srvs) + end, (host, port))
 
 
-    def _parse_package(self, content):
+    @classmethod
+    def _parse_package(cls, content):
         """ extract protocol info and filter_strings """
         content = content.split(" ")
         protocol, filter_strings = None, None
@@ -85,7 +86,8 @@ class MasterServerProtocol(HeartBeatServerProtocol):
 
         return protocol, filter_strings, name
 
-    def _parse_filter(self, filter_strings):
+    @classmethod
+    def _parse_filter(cls, filter_strings):
         empty, full, gametype = False, False, False
 
         for f in filter_strings:
@@ -110,7 +112,8 @@ class MasterServerProtocol(HeartBeatServerProtocol):
 
         return empty, full, gametype
 
-    def _split_it(servers, length):
+    @classmethod
+    def _split_it(cls, servers, length):
         """ a generator that returns list chunks of the defined length """
         l = len(servers)
         i = 0

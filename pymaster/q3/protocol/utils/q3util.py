@@ -23,7 +23,7 @@ def build_challenge():
         return c
 
     #generate a random length challenge
-    challenge = [_rand_char() for i in range(randint(9, 12))]
+    challenge = [_rand_char() for _ in range(randint(9, 12))]
     return ''.join(challenge)
 
 
