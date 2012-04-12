@@ -6,6 +6,7 @@ from twisted.web import server
 from pymaster.q3.master_server import MasterServer
 from pymaster.q3.server_list import Servers
 from pymaster.q3.server_json_list import Root
+import yaml
 
 Q3MASTER_PORT = "27950"
 JSON_PORT = "8080"
@@ -29,6 +30,7 @@ class MasterServerService(service.Service):
     def __init__(self, port, server_list):
         self.port = port
         self.server_list = Servers()
+        self.server = None
 
     def startService(self):
         from twisted.internet import reactor
@@ -37,16 +39,15 @@ class MasterServerService(service.Service):
 
         self.server = reactor.listenUDP(self.port, master_server)
 
-        # wolfmaster.s4ndmod.com steal
-        from twisted.internet import reactor
-        reactor.callLater(5, self.server.protocol.getservers,
-                ('64.22.107.125', 27950), ["57", "empty", "full"])
-        reactor.callLater(10, self.server.protocol.getservers,
-                ('64.22.107.125', 27950), ["60", "empty", "full"])
-        reactor.callLater(15, self.server.protocol.getservers,
-                ('64.22.107.125', 27950), ["68", "empty", "full"])
-        reactor.callLater(20, self.server.protocol.getservers,
-                ('64.22.107.125', 27950), ["71", "empty", "full"])
+        with file("master_servers.yaml") as f:
+            master_servers = yaml.load(f.read())
+
+        delay = 0
+        for k, v in master_servers.items():
+            for i in v:
+                reactor.callLater(delay, self.server.protocol.loop_getservers,
+                        (k, 27950), [str(i), "empty", "full"], 1800)
+                delay = delay + 15
 
 
 def makeService(options):
