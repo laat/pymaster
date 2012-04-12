@@ -22,32 +22,33 @@ class Q3Protocol(DatagramProtocol):
         self.resends = {}  # resend last package if no response
         self.packet_prefix = '\xff' * 4
 
-    def sendMessage(self, message, address):
+    def sendMessage(self, message, address, calls=0):
         """
         Sends a message witht the correct prefix
         """
         from twisted.internet import reactor
-        calls = 0
+
+        # first management of resends of udp-packets
         if address in self.resends:
-            calls, task = self.resends[address]
+            task = self.resends[address]
             del self.resends[address]
             try:
                 task.cancel()  # send more often than the timeout?
             except:
                 pass
         calls += 1
-
-        if calls < 3:
-            self.resends[address] = (calls,
-                    reactor.callLater(10, self.sendMessage, message, address))
+        if calls <= 3:
+            self.resends[address] = (reactor.callLater(10, self.sendMessage,
+                    message, address, calls=calls))
 
         # finally send the message
-        self.transport.write('%s%s\n' % (self.packet_prefix, message), address)
+        self.transport.write('%s%s\n' % (self.packet_prefix, message),
+                address)
 
     def datagramReceived(self, data, (host, port)):
         if data.startswith(self.packet_prefix):
             if (host, port) in self.resends:
-                _, task = self.resends[(host, port)]
+                task = self.resends[(host, port)]
                 try:
                     task.cancel()
                 except:
