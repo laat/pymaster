@@ -21,16 +21,19 @@ class Options(usage.Options):
             "port the q3 master server runs on"],
         ["json_api_port", "q", JSON_PORT,
             "port the json api is served on"],
+        ["master_server_file", "f", "master_servers.yaml",
+            "the config file for masterservers"]
     ]
 
 
 class MasterServerService(service.Service):
     name = "Q3 Master"
 
-    def __init__(self, port, server_list):
+    def __init__(self, port, server_list, master_servers_file):
         self.port = port
         self.server_list = Servers()
         self.server = None
+        self.master_servers_file = master_servers_file
 
     def startService(self):
         from twisted.internet import reactor
@@ -39,7 +42,7 @@ class MasterServerService(service.Service):
 
         self.server = reactor.listenUDP(self.port, master_server)
 
-        with file("master_servers.yaml") as f:
+        with file(self.master_servers_file) as f:
             master_servers = yaml.load(f.read())
 
         delay = 0
@@ -54,7 +57,8 @@ def makeService(options):
     server_list = Servers()
     ms = service.MultiService()
 
-    q3_master = MasterServerService(int(options["q3master_port"]), server_list)
+    q3_master = MasterServerService(int(options["q3master_port"]), server_list,
+            options["master_server_file"])
     q3_master.setServiceParent(ms)
 
     json_root = server.Site(Root(server_list))
