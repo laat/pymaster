@@ -7,6 +7,7 @@ from .utils.q3util import pack_host
 from .client import ServerClientProtocol
 from twisted.python import log
 
+
 class HeartBeatServerProtocol(ServerClientProtocol):
     """
     Server -> Master Server protocol
@@ -18,6 +19,10 @@ class HeartBeatServerProtocol(ServerClientProtocol):
         ]
 
     def handle_heartbeat(self, content, ip, port):
+        """
+        Handles heart messages received by the server.
+        In reply to a heartbeat message it sends a getinfo message.
+        """
         log.msg("heartbeat from %s:%s" % (ip, port))
 
         if content in self.flatlines:
@@ -26,10 +31,13 @@ class HeartBeatServerProtocol(ServerClientProtocol):
         challenge, _ = self._get_or_create_server(ip, port)
         self.getinfo(ip, port, challenge=challenge)
 
-        # I like to save a bit more info
-        self.getstatus(ip, port, challenge=challenge)
-
     def handle_gameCompleteStatus(self, content, ip, port):
+        """
+        Handles gameCompleteStatus messages.
+        This method only calls _get_or_create_server. This is because
+        this message from the game server is useless with the getinfo
+        calls when the master server receives a heartbeat message.
+        """
         log.msg("gameCompleteStatus" + content)
 
         # Notify server list that something happened
@@ -43,10 +51,13 @@ class HeartBeatServerProtocol(ServerClientProtocol):
         """
         raise NotImplementedError
 
+
 class MasterServerProtocol(HeartBeatServerProtocol):
     def handle_getservers(self, content, host, port):
         """
-        Sends sgetserverResponse messages to clients containing all servers
+        Sends getserverResponse messages to the sender.
+        The server responds with a series of getserverResponse messages
+        that contain all servers
         """
         log.msg("getserver" + content)
         end = "\\EOT\0\0\0"
@@ -59,12 +70,11 @@ class MasterServerProtocol(HeartBeatServerProtocol):
         servers = self._get_servers(protocol, empty=empty,
                 full=full, gametype=gametype)
 
-        #construct packets
+        #construct and send packets
         for srvs in self._split_it(servers, max_servers_in_package):
             packed_srvs = [pack_host(s[0], s[1]) for s in srvs]
-            self.sendMessage("getserversResponse\\" + \
+            self.sendMessage("getserversResponse\\" +
                     delim.join(packed_srvs) + end, (host, port))
-
 
     @classmethod
     def _parse_package(cls, content):
@@ -96,7 +106,7 @@ class MasterServerProtocol(HeartBeatServerProtocol):
             elif f == "full":
                 full = True  # include full
 
-            #quake 3
+            # quake 3
             elif f == "ffa":
                 gametype = "0"
             elif f == "tourney":
@@ -106,7 +116,7 @@ class MasterServerProtocol(HeartBeatServerProtocol):
             elif f == "ctf":
                 gametype = "3"
 
-            #darkplaces
+            # darkplaces
             elif f.startswith("gametype="):
                 gametype = f.lstrip("gametype=").strip("\n")
 
@@ -114,7 +124,9 @@ class MasterServerProtocol(HeartBeatServerProtocol):
 
     @classmethod
     def _split_it(cls, servers, length):
-        """ a generator that returns list chunks of the defined length """
+        """
+        a generator that returns list chunks of the defined length
+        """
         l = len(servers)
         i = 0
         while i + length < l:
@@ -122,8 +134,7 @@ class MasterServerProtocol(HeartBeatServerProtocol):
             i = i + length
         yield servers[i:]
 
-    def _get_servers(self, protocol, empty=True,
-            full=True, gametype=5):
+    def _get_servers(self, protocol, empty=True, full=True, gametype=5):
         """
         Should return a list of (host, ip) tuples
         """

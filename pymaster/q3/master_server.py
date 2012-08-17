@@ -18,6 +18,13 @@ class MasterServer(MasterServerProtocol,
         MasterServerProtocol.__init__(self)
         MasterServerClientProtocol.__init__(self)
 
+    def handle_heartbeat(self, content, ip, port):
+        # I like to save a bit more info
+        challenge, _ = self._get_or_create_server(ip, port)
+        self.getstatus(ip, port, challenge=challenge)
+
+        super(MasterServer, self).handle_heartbeat(content, ip, port)
+
     def loop_getservers(self, address, argumentlist, delay):
         from twisted.internet import reactor
         loop = LoopingCall(self.getservers, address, argumentlist)
