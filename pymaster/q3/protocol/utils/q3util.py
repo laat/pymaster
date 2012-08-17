@@ -9,6 +9,7 @@ from itertools import izip
 from struct import unpack
 from struct import pack
 
+
 def build_challenge():
     """
     Build a challenge string for a "getinfo" message
@@ -41,9 +42,14 @@ def find_command(text):
     content = text[i:].lstrip("\n").lstrip("\\")
     return command, content
 
-allowed_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
+allowed_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX'\
+                'YZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
+
+
 def infostring_to_dict(response):
-    """takes a single line of infostring and creates a defaultdict"""
+    """
+    takes a single line of infostring and creates a defaultdict
+    """
     info = response.split("\\")
     # strip non printable
     for i, information in enumerate(info):
@@ -71,7 +77,7 @@ def statusresponse_to_dict(response):
 
 def pack_host(host, port):
     """
-    Packs a host tuple according to the standard. AFAIK - Sigurd
+    Packs a host tuple according to the standard.
     """
     values = map(int, host.split("."))  # the ip first
     values.append(port)

@@ -11,7 +11,8 @@ class Root(resource.Resource):
         self.putChild("serverlist", ServerList(servers))
 
     def render_GET(self, request):
-        return "/protocols <br> /serverlist/57 <br> FUTURE FEATUE: /server/host/port"
+        return "/protocols <br> /serverlist/57 <br>"\
+               " FUTURE FEATUE: /server/host/port"
 
     def getChild(self, path, request):
         if path == "":

@@ -27,6 +27,7 @@ class maxdict(dict):
 
         dict.__setitem__(self, key, value)
 
+
 class AbusiveClientFilter(object):
     # it could very well be 1000, it's the 10's of thosands that's bad
     # and I doubt legitimate use vill ever exeed this number.

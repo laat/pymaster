@@ -142,7 +142,6 @@ class Servers(object):
             except:
                 pass
 
-
     def get_servers(self, protocol, empty=True, full=True, gametype=None):
         all_servers = self.protocol_index.get_servers(protocol)
         if empty and full and not gametype:
@@ -153,7 +152,8 @@ class Servers(object):
                 s = self.servers[(host, port)]
 
                 filter_this = False
-                if not full and s["full"]:  # Do not want full servers -> filter
+                if not full and s["full"]:
+                    # Do not want full servers -> filter
                     filter_this = True
                 if not empty and s["empty"]:
                     filter_this = True

@@ -43,9 +43,8 @@ class MasterServerClientProtocol(Q3Protocol):
     """
     Client <-> Master Server protocol
     """
-
     def getservers(self, address, argumentlist):
-        log.msg("Sending getservers with arguments %s to %s" %\
+        log.msg("Sending getservers with arguments %s to %s" %
                 (argumentlist, address))
 
         self.sendMessage("getservers " + " ".join(argumentlist), address)
